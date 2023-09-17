@@ -60,7 +60,7 @@ const (
 type Token struct {
     TokenType string 
     Lexeme string
-    Literal string
+    Literal interface{} 
     Line int
 }
 
