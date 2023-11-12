@@ -1,7 +1,6 @@
 package scanner
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/haritsrizkall/golox/errorgolox"
@@ -72,7 +71,6 @@ func (s *Scanner) advance() byte {
 
 func (s *Scanner) scanToken() {
 	c := s.advance()
-	fmt.Println(string(c))
 	switch c {
 	case '(':
 		s.addToken(token.LEFT_PAREN)
@@ -155,7 +153,7 @@ func (s *Scanner) number() {
 		s.advance()
 
 		for s.isDigit(s.peek()) {
-			s.peek()
+			s.advance()
 		}
 	}
 
@@ -179,7 +177,7 @@ func (s *Scanner) isDigit(c byte) bool {
 }
 
 func (s *Scanner) string() {
-	if s.peek() != '"' && !s.isAtEnd() {
+	for s.peek() != '"' && !s.isAtEnd() {
 		if s.peek() == '\n' {
 			s.line++
 		}
@@ -194,7 +192,7 @@ func (s *Scanner) string() {
 	// the closing "
 	s.advance()
 
-	value := s.source[s.start+1 : s.current]
+	value := s.source[s.start+1 : s.current-1]
 	s.addTokenWithLiteral(token.STRING, value)
 }
 
@@ -222,7 +220,7 @@ func (s *Scanner) addToken(tokenType string) {
 }
 
 func (s *Scanner) addTokenWithLiteral(tokenType string, literal interface{}) {
-	text := s.source[s.start : s.current+1]
+	text := s.source[s.start:s.current]
 	token := token.Token{
 		TokenType: tokenType,
 		Literal:   literal,
@@ -233,10 +231,10 @@ func (s *Scanner) addTokenWithLiteral(tokenType string, literal interface{}) {
 }
 
 func (s *Scanner) identifier() {
-	for s.isAlphanumeric(s.peek()) {
+	for s.isAlphanumeric(s.peek()) && !s.isAtEnd() {
 		s.advance()
 	}
-	text := s.source[s.start : s.current+1]
+	text := s.source[s.start:s.current]
 	tokenType, ok := keywords[text]
 	if !ok {
 		tokenType = token.IDENTIFIER

@@ -34,7 +34,6 @@ func report(line int, where, message string) {
 func run(str string) {
 	scanner := scanner.NewScanner(str)
 	tokens := scanner.ScanTokens()
-	fmt.Println("=======Token======")
 	for _, token := range tokens {
 		fmt.Println(token)
 	}
