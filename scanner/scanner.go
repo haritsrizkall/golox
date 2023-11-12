@@ -15,7 +15,17 @@ type Scanner struct {
     line int
 }
 
-func (s *Scanner) scanTokens() []token.Token {
+func (s *Scanner) ScanTokens() []token.Token {
+    for !s.isAtEnd() {
+      s.start = s.current
+      s.scanToken()
+    }
+    s.tokens = append(s.tokens, token.Token{
+      TokenType: token.EOF,
+      Lexeme: "",
+      Literal: nil,
+      Line: s.line,
+    })
     return s.tokens
 }
 
@@ -77,7 +87,7 @@ func (s *Scanner) scanToken() {
         }
     case '/': 
         if s.match('/') {
-            if s.peak() != '\n' && s.isAtEnd() {
+            if s.peek() != '\n' && s.isAtEnd() {
                s.advance() 
             }
         }else {
@@ -93,24 +103,24 @@ func (s *Scanner) scanToken() {
     default:
         if s.isDigit(c) {
            s.number() 
+        }else {
+          errorgolox.LogError(s.line, "unexpected char")
         }
-
-        errorgolox.LogError(s.line, "Unexpected char dude")
     }
 }
 
 func (s *Scanner) number() {
-    for s.isDigit(s.peak()) {
+    for s.isDigit(s.peek()) {
         s.advance()
     }
 
     // Look for a factional part
-    if s.peak() == '.' && s.isDigit(s.peakNext()) {
+    if s.peek() == '.' && s.isDigit(s.peekNext()) {
         // Consume "."
         s.advance()
 
-        for s.isDigit(s.peak()) {
-            s.peak()
+        for s.isDigit(s.peek()) {
+            s.peek()
         }
     }
 
@@ -122,7 +132,7 @@ func (s *Scanner) number() {
     s.addTokenWithLiteral(token.NUMBER, valueFloat)
 }
 
-func (s *Scanner) peakNext() byte {
+func (s *Scanner) peekNext() byte {
     if s.current + 1 >= len(s.source) {
         return 0 
     }
@@ -134,8 +144,8 @@ func (s *Scanner) isDigit(c byte) bool {
 }
 
 func (s *Scanner) string() {
-    if s.peak() != '"' && !s.isAtEnd() {
-        if s.peak() == '\n' {
+    if s.peek() != '"' && !s.isAtEnd() {
+        if s.peek() == '\n' {
             s.line++
         }
         s.advance()
@@ -153,7 +163,7 @@ func (s *Scanner) string() {
     s.addTokenWithLiteral(token.STRING, value)
 }
 
-func (s *Scanner) peak() byte {
+func (s *Scanner) peek() byte {
     if s.isAtEnd() {
         return 0
     }
@@ -185,4 +195,19 @@ func (s *Scanner) addTokenWithLiteral (tokenType string, literal interface{}) {
         Line: s.line,
     }
     s.tokens = append(s.tokens, token) 
+}
+
+func (s *Scanner) identifier() {
+  for s.isAlphanumeric(s.peek()) {
+    s.advance()
+  }
+  s.addToken(token.IDENTIFIER)
+}
+
+func (s *Scanner) isAlpha(c byte) bool {
+  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_')
+}
+
+func (s *Scanner) isAlphanumeric(c byte) bool {
+  return s.isAlpha(c) || s.isDigit(c)
 }
