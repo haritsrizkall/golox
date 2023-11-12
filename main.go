@@ -32,10 +32,9 @@ func report(line int, where, message string) {
 }
 
 func run(str string) {
-	fmt.Printf("Run %s\n", str)
-	scanner := &scanner.Scanner{}
+	scanner := scanner.NewScanner(str)
 	tokens := scanner.ScanTokens()
-	fmt.Println("Scan tokens")
+	fmt.Println("=======Token======")
 	for _, token := range tokens {
 		fmt.Println(token)
 	}
@@ -46,10 +45,9 @@ func runPrompt() {
 	fmt.Println("Runprompt")
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		var line string
 		fmt.Print("> ")
-		reader.ReadString('\n')
-		run(line)
+		line, _, _ := reader.ReadLine()
+		run(string(line))
 		if hadError {
 			os.Exit(65)
 		}
